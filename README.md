@@ -121,13 +121,7 @@ The software generates a detailed technical report. Key sections include:
     * **[A] Beach Nourishment:** Uses Birkemeier (Shallower).
     * **[B] Hard Structures:** Uses Hallermeier Inner (Deeper/Safer).
     * **[C] Disposal:** Uses Hallermeier Outer (Deepest/Most Stable).
-3.  **Sensitivity Analysis Table:** A matrix displaying results for 6 scenarios:
-    * Base Case
-    * Low Energy ($H_s -25\%$)
-    * High Energy ($H_s +25\%$)
-    * Short Period ($T_e -25\%$)
-    * Long Period ($T_e +25\%$)
-    * Worst Case (High Energy + Short Period)
+3.  **Sensitivity Analysis Table:** A matrix displaying results for different wave scenarios.
 
 ---
 
@@ -144,5 +138,6 @@ The software generates a detailed technical report. Key sections include:
 ## 7. License & Disclaimer
 
 **License:** Open Source (MIT or equivalent).
+
 
 **Disclaimer:** This software is an engineering aid and does not replace detailed coastal process modeling or site-specific field studies. The authors assume no liability for design failures resulting from the use of these tools.
