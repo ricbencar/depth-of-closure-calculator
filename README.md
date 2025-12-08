@@ -57,17 +57,25 @@ $$h_c = 0.018 H_m T_e \sqrt{\frac{g}{(s-1) D_{50}}}$$
 
 ## 3. Repository Contents & Compilation
 
-This repository includes three implementation variations to suit different engineering workflows.
+This repository includes four implementation variations to suit different engineering workflows.
 
 ### 3.1 Python Script (`depth_of_closure.py`)
-A rapid prototyping script ideal for quick checks, educational purposes, or integration into Jupyter notebooks.
-* **Dependencies:** Python 3.x (Standard libraries: `math`, `sys`, `argparse`).
+A rapid prototyping script ideal for quick checks or integration into larger pipelines.
+* **Dependencies:** Python 3.x (Standard libraries: `math`, `sys`, `argparse`, `pandas`, `numpy`).
 * **Execution:**
     ```bash
     python3 depth_of_closure.py
     ```
 
-### 3.2 C++ CLI (`depth_of_closure_cli.cpp`)
+### 3.2 Jupyter Notebook (`depth_of_closure.ipynb`)
+An interactive notebook version of the calculation engine. This format is ideal for educational purposes, step-by-step code walkthroughs, and visualizing the sensitivity analysis data.
+* **Dependencies:** Jupyter Lab/Notebook, Pandas, NumPy.
+* **Execution:**
+    ```bash
+    jupyter notebook depth_of_closure.ipynb
+    ```
+
+### 3.3 C++ CLI (`depth_of_closure_cli.cpp`)
 A high-performance command-line tool designed for batch processing. It performs the full sensitivity analysis and exports a formatted text report.
 
 * **Compilation (GCC/MinGW):**
@@ -84,7 +92,7 @@ A high-performance command-line tool designed for batch processing. It performs 
     ./depth_of_closure_cli 2.25 9.0 7.7 0.50 2.65
     ```
 
-### 3.3 C++ GUI (`depth_of_closure_gui.cpp`)
+### 3.4 C++ GUI (`depth_of_closure_gui.cpp`)
 A standalone native Windows application using the Win32 API. It provides a visual interface for inputting wave parameters and viewing the generated "Design Decision Matrix."
 
 * **Compilation (MinGW on Windows):**
@@ -138,6 +146,5 @@ The software generates a detailed technical report. Key sections include:
 ## 7. License & Disclaimer
 
 **License:** Open Source (MIT or equivalent).
-
 
 **Disclaimer:** This software is an engineering aid and does not replace detailed coastal process modeling or site-specific field studies. The authors assume no liability for design failures resulting from the use of these tools.
