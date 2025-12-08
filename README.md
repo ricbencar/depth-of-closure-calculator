@@ -142,9 +142,3 @@ The software generates a detailed technical report. Key sections include:
 5.  **USACE (2002).** *Coastal Engineering Manual (CEM)*, Part III.
 
 ---
-
-## 7. License & Disclaimer
-
-**License:** Open Source (MIT or equivalent).
-
-**Disclaimer:** This software is an engineering aid and does not replace detailed coastal process modeling or site-specific field studies. The authors assume no liability for design failures resulting from the use of these tools.
