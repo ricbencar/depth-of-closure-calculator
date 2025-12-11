@@ -248,7 +248,7 @@ def run_sensitivity_analysis():
         {"Name": "High Energy (+25%)",  "Hs_mean": hs_mean_base * 1.25, "Te": te_base, "Hs_max": hs_max_base * 1.25},
         {"Name": "Short Period (-25%)", "Hs_mean": hs_mean_base, "Te": te_base * 0.75, "Hs_max": hs_max_base},
         {"Name": "Long Period (+25%)",  "Hs_mean": hs_mean_base, "Te": te_base * 1.25, "Hs_max": hs_max_base},
-        {"Name": "Worst Case (H+, T-)", "Hs_mean": hs_mean_base * 1.25, "Te": te_base * 0.75, "Hs_max": hs_max_base * 1.25},
+        {"Name": "Worst Case (H+, T+)", "Hs_mean": hs_mean_base * 1.25, "Te": te_base * 1.25, "Hs_max": hs_max_base * 1.25},
     ]
     
     results_list = []

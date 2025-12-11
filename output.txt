@@ -45,7 +45,62 @@ Low Energy (-25%)         1.69     9.0    5.78    1.47        7.68       10.29  
 High Energy (+25%)        2.81     9.0    9.62    2.45       10.09       13.96     18.98       43.23
 Short Period (-25%)       2.25     6.8    7.70    1.96        5.79        8.47     15.19       25.94
 Long Period (+25%)        2.25    11.2    7.70    1.96       10.71       14.28     15.19       43.23
-Worst Case (H+, T-)       2.81     6.8    9.62    2.45        4.84        7.74     18.98       32.42
+Worst Case (H+, T+)       2.81    11.2    9.62    2.45       12.52       16.83     18.98       54.04
+
+----------------------------------------------------------------------------------------------------
+Reference Codes:
+- Birkemeier: Field Adjusted Inner Limit (Best for Fill)
+- Hall_Inner: Analytical Inner Limit (Best for Structures)
+- Hall_Outer: Incipient Motion Limit (Best for Disposal)
+================================================================================
+================================================================================
+TECHNICAL REPORT: DEPTH OF CLOSURE (DoC) SENSITIVITY ANALYSIS
+================================================================================
+
+1. EXECUTIVE SUMMARY OF BASE CASE
+---------------------------------
+   Site Conditions:
+   - Annual Mean Hs.........: 2.25 m
+   - Annual Mean Te.........: 9.00 s
+   - Annual Max Hs..........: 7.70 m
+   - Sediment D50...........: 0.50 mm
+
+   Calculated Intermediate Parameters:
+   - Estimated Sigma (Std Dev)..: 0.973 m
+   - Effective Wave Height (He).: 7.70 m (Used for Inner Limit)
+   - Median Wave Height (Hm)....: 1.96 m (Used for Outer Limit)
+
+2. DESIGN DECISION MATRIX (BASE CASE)
+-------------------------------------
+   Select the Closure Depth based on your engineering application:
+
+   [A] FOR BEACH NOURISHMENT (Active Profile Toe)
+       >> ADOPT: 9.15 meters (Birkemeier 1985)
+       Reasoning: Field-calibrated to the limit of significant profile change.
+       Optimizes sand volume.
+
+   [B] FOR HARD STRUCTURES (Scour Protection)
+       >> ADOPT: 12.44 meters (Hallermeier 1981)
+       Reasoning: Analytical limit of intense bed agitation. Provides a safety
+       factor (deeper than Birkemeier).
+
+   [C] FOR DREDGED MATERIAL DISPOSAL (Stable Mounds)
+       >> ADOPT: 34.58 meters (Hallermeier 1983)
+       Reasoning: Theoretical limit of incipient sediment motion. Material placed
+       seaward of this line will be stable.
+
+3. SENSITIVITY ANALYSIS TABLE (ALL SCENARIOS)
+---------------------------------------------
+All depths in meters.
+
+Scenario                Hs_Avg      Te      He      Hm  Birkemeier  Hall_Inner   Houston  Hall_Outer
+----------------------------------------------------------------------------------------------------
+Base Case                 2.25     9.0    7.70    1.96        9.15       12.44     15.19       34.58
+Low Energy (-25%)         1.69     9.0    5.78    1.47        7.68       10.29     11.39       25.94
+High Energy (+25%)        2.81     9.0    9.62    2.45       10.09       13.96     18.98       43.23
+Short Period (-25%)       2.25     6.8    7.70    1.96        5.79        8.47     15.19       25.94
+Long Period (+25%)        2.25    11.2    7.70    1.96       10.71       14.28     15.19       43.23
+Worst Case (H+, T+)       2.81    11.2    9.62    2.45       12.52       16.83     18.98       54.04
 
 ----------------------------------------------------------------------------------------------------
 Reference Codes:

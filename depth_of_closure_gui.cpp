@@ -207,10 +207,10 @@ public:
         long_per.te_mean *= 1.25;
         report_data.push_back(solve_scenario("Long Period (+25%)", long_per));
 
-        // Worst Case (H+, T-)
+        // Worst Case (H+, T+)
         Inputs worst = base_in;
-        worst.hs_mean *= 1.25; worst.hs_max *= 1.25; worst.te_mean *= 0.75;
-        report_data.push_back(solve_scenario("Worst Case (H+, T-)", worst));
+        worst.hs_mean *= 1.25; worst.hs_max *= 1.25; worst.te_mean *= 1.25;
+        report_data.push_back(solve_scenario("Worst Case (H+, T+)", worst));
 
         return report_data;
     }
