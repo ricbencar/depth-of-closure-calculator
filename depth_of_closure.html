@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#061423">
+  <title>Depth of Closure Calculator</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23071427'/%3E%3Cpath d='M8 27c8-8 16 8 24 0s16 8 24 0v9c-8 8-16-8-24 0S16 28 8 36z' fill='%2339b9ff'/%3E%3Cpath d='M10 47h44' stroke='%2374e4d0' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg-0: #020914;
+      --bg-1: #051221;
+      --bg-2: #081a2d;
+      --panel: rgba(7, 24, 42, 0.92);
+      --panel-soft: rgba(11, 33, 55, 0.84);
+      --panel-strong: #081a2e;
+      --line: rgba(111, 186, 239, 0.22);
+      --line-strong: rgba(111, 186, 239, 0.38);
+      --text: #eef8ff;
+      --muted: #9bb5ca;
+      --muted-2: #6f8ba3;
+      --accent: #39b9ff;
+      --accent-2: #78d7ff;
+      --teal: #49e0c4;
+      --violet: #9a9dff;
+      --good: #61dbad;
+      --warning: #ffc96b;
+      --danger: #ff7f90;
+      --shadow: 0 24px 72px rgba(0, 0, 0, 0.34);
+      --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.24);
+      --radius-xl: 22px;
+      --radius-lg: 17px;
+      --radius-md: 12px;
+      --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% -5%, rgba(57, 185, 255, 0.18), transparent 31rem),
+        radial-gradient(circle at 100% 18%, rgba(73, 224, 196, 0.10), transparent 34rem),
+        linear-gradient(145deg, var(--bg-0) 0%, var(--bg-1) 42%, #030d19 100%);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: 0.55;
+      background:
+        repeating-radial-gradient(ellipse at 112% 112%, transparent 0 42px, rgba(92, 176, 231, 0.055) 43px 44px),
+        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+      background-size: auto, 42px 42px, 42px 42px;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 18%, black 100%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto -18vw -32vw auto;
+      width: 78vw;
+      height: 78vw;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(18, 104, 166, 0.11), transparent 68%);
+      filter: blur(16px);
+    }
+
+    ::selection { color: #001522; background: var(--accent-2); }
+    * { scrollbar-width: thin; scrollbar-color: #1b5b83 #06111e; }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+
+    .app-shell {
+      width: min(1580px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 38px;
+    }
+
+    .topbar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      overflow: hidden;
+      min-height: 114px;
+      padding: 21px 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(100deg, rgba(9, 31, 53, 0.97), rgba(7, 23, 40, 0.91)),
+        radial-gradient(circle at 92% 15%, rgba(57, 185, 255, 0.22), transparent 22rem);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      right: -55px;
+      bottom: -90px;
+      width: 420px;
+      height: 190px;
+      opacity: 0.4;
+      transform: rotate(-7deg);
+      background:
+        radial-gradient(ellipse at center, transparent 0 42%, rgba(73, 224, 196, 0.16) 43% 44%, transparent 45% 57%, rgba(57, 185, 255, 0.13) 58% 59%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 67px;
+      height: 67px;
+      border: 1px solid rgba(120, 215, 255, 0.34);
+      border-radius: 19px;
+      background: linear-gradient(145deg, rgba(38, 141, 207, 0.25), rgba(9, 35, 59, 0.72));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.08), 0 15px 35px rgba(0, 0, 0, 0.28);
+    }
+
+    .brand-mark svg { width: 45px; height: 45px; }
+    .brand-mark .wave-a { animation: wave-drift 5.8s ease-in-out infinite alternate; }
+    .brand-mark .wave-b { animation: wave-drift 6.8s ease-in-out -1.2s infinite alternate-reverse; }
+
+    @keyframes wave-drift {
+      from { transform: translateX(-2px); }
+      to { transform: translateX(3px); }
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--accent-2);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 2.6vw, 2.45rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .brand p:last-child {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: clamp(0.9rem, 1.15vw, 1rem);
+    }
+
+    .topbar-meta {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid rgba(97, 219, 173, 0.25);
+      border-radius: 999px;
+      color: #caffea;
+      background: rgba(20, 90, 69, 0.22);
+      font-size: 0.8rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--good);
+      box-shadow: 0 0 14px rgba(97, 219, 173, 0.9);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(315px, 382px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+      margin-top: 20px;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(160deg, rgba(9, 29, 49, 0.96), rgba(5, 19, 34, 0.94));
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(15px);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(23, 57, 87, 0.72), rgba(11, 34, 57, 0.50));
+    }
+
+    .panel-title-group { min-width: 0; }
+    .panel-header h2, .panel-header h3 {
+      margin: 0;
+      font-size: 1.04rem;
+      letter-spacing: 0.005em;
+    }
+
+    .panel-kicker {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted-2);
+      font-size: 0.71rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .panel-body { padding: 18px; }
+    .inputs-panel { position: sticky; top: 18px; }
+
+    .error-bar, .warning-bar {
+      display: none;
+      margin-bottom: 14px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      font-weight: 680;
+    }
+
+    .error-bar.visible, .warning-bar.visible { display: block; }
+    .error-bar {
+      color: #ffe0e4;
+      border: 1px solid rgba(255, 127, 144, 0.42);
+      background: rgba(130, 29, 45, 0.30);
+    }
+    .warning-bar {
+      color: #fff1cb;
+      border: 1px solid rgba(255, 201, 107, 0.38);
+      background: rgba(119, 77, 15, 0.27);
+    }
+
+    .input-grid { display: grid; gap: 14px; }
+    .field { display: grid; gap: 7px; }
+
+    .field-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .field label {
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 710;
+    }
+
+    .symbol {
+      color: var(--accent-2);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 0.93rem;
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    .field-control { position: relative; }
+
+    input[type="number"] {
+      width: 100%;
+      min-height: 45px;
+      padding: 10px 57px 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      outline: none;
+      color: var(--text);
+      background: rgba(2, 14, 26, 0.76);
+      font-variant-numeric: tabular-nums;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      background: rgba(4, 21, 37, 0.95);
+      box-shadow: 0 0 0 3px rgba(57, 185, 255, 0.15), 0 8px 22px rgba(0, 0, 0, 0.18);
+      transform: translateY(-1px);
+    }
+
+    input[type="number"]:invalid { border-color: rgba(255, 127, 144, 0.7); }
+
+    .unit {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      min-width: 36px;
+      padding: 4px 7px;
+      border: 1px solid rgba(120, 215, 255, 0.16);
+      border-radius: 7px;
+      color: var(--muted);
+      background: rgba(18, 49, 76, 0.78);
+      font-size: 0.72rem;
+      font-weight: 760;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .field-note {
+      margin: 0;
+      color: var(--muted-2);
+      font-size: 0.72rem;
+      line-height: 1.35;
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 3px;
+    }
+
+    .primary-button, .secondary-button, .icon-button, .tab-button {
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 760;
+      transition: transform 120ms ease, filter 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .primary-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 12px 16px;
+      color: #001421;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      box-shadow: 0 12px 30px rgba(57, 185, 255, 0.22);
+    }
+
+    .secondary-button {
+      min-height: 42px;
+      padding: 10px 14px;
+      color: var(--text);
+      border: 1px solid var(--line-strong);
+      background: rgba(15, 45, 72, 0.72);
+    }
+
+    .primary-button:hover, .secondary-button:hover, .icon-button:hover, .tab-button:hover { filter: brightness(1.09); }
+    .primary-button:active, .secondary-button:active, .icon-button:active, .tab-button:active { transform: translateY(1px); }
+    .primary-button:focus-visible, .secondary-button:focus-visible, .icon-button:focus-visible, .tab-button:focus-visible {
+      outline: 3px solid rgba(120, 215, 255, 0.35);
+      outline-offset: 2px;
+    }
+
+    .side-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .scope-card {
+      margin-top: 15px;
+      padding: 13px;
+      border: 1px solid rgba(111, 186, 239, 0.16);
+      border-radius: 12px;
+      background: rgba(8, 28, 47, 0.64);
+    }
+
+    .scope-card h3 {
+      margin: 0 0 9px;
+      color: var(--accent-2);
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .scope-list { display: grid; gap: 8px; }
+    .scope-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .scope-row strong { color: var(--text); font-weight: 740; }
+
+    .content { display: grid; gap: 20px; min-width: 0; }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .result-card {
+      position: relative;
+      min-height: 181px;
+      overflow: hidden;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: linear-gradient(148deg, rgba(18, 49, 77, 0.95), rgba(6, 23, 40, 0.96));
+      box-shadow: var(--shadow-soft);
+      transition: transform 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(120, 215, 255, 0.42);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+    }
+
+    .result-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--card-accent, var(--accent));
+      box-shadow: 0 0 22px var(--card-accent, var(--accent));
+    }
+
+    .result-card::after {
+      content: "";
+      position: absolute;
+      right: -42px;
+      top: -48px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--card-accent, var(--accent)) 18%, transparent), transparent 68%);
+      pointer-events: none;
+    }
+
+    .result-card.nourishment { --card-accent: #58d7ff; }
+    .result-card.structures { --card-accent: #3b9cff; }
+    .result-card.disposal { --card-accent: #49e0c4; }
+
+    .card-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .application-tag {
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 820;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+
+    .card-index {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 42%, transparent);
+      border-radius: 9px;
+      color: var(--card-accent, var(--accent));
+      background: color-mix(in srgb, var(--card-accent, var(--accent)) 10%, transparent);
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+
+    .result-card h3 {
+      position: relative;
+      z-index: 1;
+      margin: 12px 0 0;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+
+    .result-value {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin: 11px 0 4px;
+      color: var(--card-accent, var(--accent));
+      font-size: clamp(1.8rem, 3.1vw, 2.55rem);
+      font-weight: 830;
+      line-height: 1;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-value small {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .method-name {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .reference-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 14px;
+      padding: 12px 15px;
+      border: 1px solid rgba(154, 157, 255, 0.22);
+      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(57, 61, 128, 0.18), rgba(12, 31, 52, 0.54));
+    }
+
+    .reference-strip strong { font-size: 0.88rem; }
+    .reference-strip span { color: var(--muted); font-size: 0.78rem; }
+    .reference-value {
+      color: var(--violet) !important;
+      font-size: 1.22rem !important;
+      font-weight: 820;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      padding: 13px 14px;
+      border: 1px solid rgba(111, 186, 239, 0.16);
+      border-radius: 12px;
+      background: rgba(7, 24, 42, 0.65);
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 3px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .visual-body { padding: 8px 12px 15px; }
+    .profile-wrap {
+      position: relative;
+      overflow: hidden;
+      min-height: 330px;
+      border: 1px solid rgba(111, 186, 239, 0.14);
+      border-radius: 13px;
+      background: linear-gradient(180deg, rgba(9, 42, 69, 0.46), rgba(2, 13, 24, 0.92));
+    }
+
+    .profile-wrap svg, .sensitivity-chart svg { display: block; width: 100%; height: auto; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 11px;
+      padding: 0 4px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 680;
+    }
+
+    .legend-swatch {
+      width: 19px;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--swatch);
+      box-shadow: 0 0 9px color-mix(in srgb, var(--swatch) 55%, transparent);
+    }
+
+    .analysis-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 14px;
+    }
+
+    .analysis-box {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid rgba(111, 186, 239, 0.14);
+      border-radius: 13px;
+      background: rgba(3, 16, 29, 0.62);
+    }
+
+    .box-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 13px;
+      border-bottom: 1px solid rgba(111, 186, 239, 0.13);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 760;
+    }
+
+    .box-title small { color: var(--muted-2); font-size: 0.69rem; font-weight: 650; }
+    .sensitivity-chart { padding: 10px 9px 7px; }
+
+    .table-scroll { overflow: auto; max-height: 410px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th, td {
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(111, 186, 239, 0.11);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: #ccecff;
+      background: #0b2943;
+      font-size: 0.68rem;
+      letter-spacing: 0.035em;
+      text-transform: uppercase;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: rgba(17, 46, 72, 0.24); }
+    tbody tr:hover { background: rgba(57, 185, 255, 0.08); }
+    tbody tr.base-row td { color: #eaf8ff; font-weight: 760; }
+    td.method-b { color: #72ddff; }
+    td.method-hi { color: #72b5ff; }
+    td.method-hou { color: #b3b5ff; }
+    td.method-ho { color: #7be7d1; }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 7px 10px;
+      color: var(--text);
+      border: 1px solid var(--line-strong);
+      background: rgba(13, 43, 70, 0.78);
+      font-size: 0.74rem;
+    }
+
+    .icon-button svg, .primary-button svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+    .report-body { padding: 14px; }
+    pre {
+      margin: 0;
+      min-height: 420px;
+      max-height: 690px;
+      overflow: auto;
+      padding: 17px;
+      border: 1px solid rgba(111, 186, 239, 0.17);
+      border-radius: 12px;
+      color: #e5f5ff;
+      background: #020c17;
+      font: 13.5px/1.48 var(--font-mono);
+      tab-size: 4;
+      white-space: pre;
+      box-shadow: inset 0 1px 24px rgba(0, 0, 0, 0.24);
+    }
+
+    details.methodology { border-top: 1px solid var(--line); }
+    details.methodology > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 18px;
+      cursor: pointer;
+      color: var(--accent-2);
+      font-size: 0.88rem;
+      font-weight: 760;
+      list-style: none;
+    }
+    details.methodology > summary::-webkit-details-marker { display: none; }
+    details.methodology > summary::after { content: "+"; font-size: 1.25rem; font-weight: 500; }
+    details.methodology[open] > summary::after { content: "−"; }
+
+    .methodology-content {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .formula-card {
+      padding: 12px;
+      border: 1px solid rgba(111, 186, 239, 0.15);
+      border-radius: 11px;
+      background: rgba(6, 25, 43, 0.7);
+    }
+    .formula-card strong { display: block; font-size: 0.78rem; }
+    .formula {
+      display: block;
+      margin-top: 6px;
+      color: #d8f1ff;
+      font: 0.78rem/1.5 var(--font-mono);
+      overflow-wrap: anywhere;
+    }
+    .formula-card p { margin: 6px 0 0; color: var(--muted); font-size: 0.72rem; }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 20px 8px 0;
+      color: var(--muted-2);
+      font-size: 0.76rem;
+      text-align: center;
+    }
+
+    .footer-lock { width: 13px; height: 13px; color: var(--good); }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 20;
+      max-width: min(360px, calc(100% - 32px));
+      padding: 11px 14px;
+      border: 1px solid rgba(97, 219, 173, 0.31);
+      border-radius: 11px;
+      color: #dcfff1;
+      background: rgba(7, 52, 43, 0.94);
+      box-shadow: var(--shadow-soft);
+      font-size: 0.82rem;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 170ms ease, transform 170ms ease;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1220px) {
+      .decision-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .result-card.disposal { grid-column: 1 / -1; min-height: 158px; }
+      .analysis-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+      .inputs-panel { position: static; }
+      .input-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .button-stack, .scope-card { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 700px) {
+      .app-shell { width: min(100% - 18px, 1580px); padding-top: 9px; }
+      .topbar { align-items: flex-start; flex-direction: column; padding: 17px; }
+      .brand { align-items: flex-start; }
+      .brand-mark { width: 56px; height: 56px; border-radius: 16px; }
+      .brand-mark svg { width: 38px; height: 38px; }
+      .topbar-meta { width: 100%; }
+      .status-pill { width: 100%; justify-content: center; }
+      .input-grid, .decision-grid, .stats-grid, .methodology-content { grid-template-columns: 1fr; }
+      .result-card.disposal { grid-column: auto; }
+      .reference-strip { align-items: flex-start; flex-direction: column; gap: 5px; }
+      .panel-header { align-items: flex-start; flex-direction: column; }
+      .toolbar-actions { width: 100%; justify-content: flex-start; }
+      .icon-button { flex: 1 1 auto; }
+      pre { font-size: 12px; }
+      .profile-wrap { min-height: 250px; }
+    }
+
+    @media (max-width: 440px) {
+      .brand-mark { display: none; }
+      .side-actions { grid-template-columns: 1fr; }
+      .panel-body, .report-body { padding: 13px; }
+      .result-card { min-height: 164px; }
+      .toast { right: 10px; bottom: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: 0.001ms !important; }
+    }
+
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #000; background: #fff; }
+      body::before, body::after, .topbar, .inputs-panel, .toolbar-actions, footer, .toast, details.methodology { display: none !important; }
+      .app-shell { width: 100%; padding: 0; }
+      .workspace { display: block; margin: 0; }
+      .content { display: block; }
+      .panel, .result-card, .analysis-box, .stat-card, .reference-strip {
+        break-inside: avoid;
+        margin-bottom: 12px;
+        color: #000;
+        border-color: #aaa;
+        background: #fff;
+        box-shadow: none;
+      }
+      .decision-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .panel-header, .box-title { color: #000; border-color: #bbb; background: #eee; }
+      .method-name, .application-tag, .stat-label, .reference-strip span, .panel-kicker { color: #444; }
+      .result-value, .stat-value, .reference-value { color: #000 !important; }
+      .visual-body, .analysis-layout { display: none; }
+      .report-panel { margin-top: 12px; }
+      .report-body { padding: 0; }
+      pre {
+        max-height: none;
+        overflow: visible;
+        color: #000;
+        border: 0;
+        background: #fff;
+        box-shadow: none;
+        white-space: pre-wrap;
+        font-size: 9pt;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none">
+            <path class="wave-a" d="M4 23c8.5-8 17 8 25.5 0S46.5 31 60 20" stroke="#78d7ff" stroke-width="4" stroke-linecap="round"/>
+            <path class="wave-b" d="M6 34c7.5-6 15 6 22.5 0S44 40 58 31" stroke="#39b9ff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+            <path d="M10 50c12-2 23-5 32-10 5-3 9-5 13-5" stroke="#49e0c4" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">Coastal Engineering Toolkit</p>
+          <h1>Depth of Closure Calculator</h1>
+          <p>Sediment-transport limits, design decisions and wave-climate sensitivity.</p>
+        </div>
+      </div>
+      <div class="topbar-meta">
+        <span class="status-pill"><span class="status-dot"></span>Standalone · local calculation</span>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="panel inputs-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2>Site Inputs</h2>
+            <span class="panel-kicker">Wave climate &amp; sediment</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="errorBar" class="error-bar" role="alert"></div>
+          <form id="calculatorForm" class="input-grid" novalidate>
+            <div class="field">
+              <div class="field-head">
+                <label for="hsMean">Annual mean significant wave height</label>
+                <span class="symbol">H<sub>s,mean</sub></span>
+              </div>
+              <div class="field-control">
+                <input id="hsMean" type="number" min="0" step="any" value="2.25" inputmode="decimal" autocomplete="off">
+                <span class="unit">m</span>
+              </div>
+              <p class="field-note">Yearly average significant wave height.</p>
+            </div>
+
+            <div class="field">
+              <div class="field-head">
+                <label for="teMean">Mean wave period</label>
+                <span class="symbol">T<sub>e</sub></span>
+              </div>
+              <div class="field-control">
+                <input id="teMean" type="number" min="0" step="any" value="9.00" inputmode="decimal" autocomplete="off">
+                <span class="unit">s</span>
+              </div>
+              <p class="field-note">Mean period associated with the annual wave climate.</p>
+            </div>
+
+            <div class="field">
+              <div class="field-head">
+                <label for="hsMax">Annual maximum significant wave height</label>
+                <span class="symbol">H<sub>s,max</sub></span>
+              </div>
+              <div class="field-control">
+                <input id="hsMax" type="number" min="0" step="any" value="7.70" inputmode="decimal" autocomplete="off">
+                <span class="unit">m</span>
+              </div>
+              <p class="field-note">Proxy for the extreme tail of the yearly distribution.</p>
+            </div>
+
+            <div class="field">
+              <div class="field-head">
+                <label for="d50">Median sediment diameter</label>
+                <span class="symbol">D<sub>50</sub></span>
+              </div>
+              <div class="field-control">
+                <input id="d50" type="number" min="0" step="any" value="0.50" inputmode="decimal" autocomplete="off">
+                <span class="unit">mm</span>
+              </div>
+              <p class="field-note">Native beach-sediment median grain size.</p>
+            </div>
+
+            <div class="field">
+              <div class="field-head">
+                <label for="sg">Sediment specific gravity</label>
+                <span class="symbol">s</span>
+              </div>
+              <div class="field-control">
+                <input id="sg" type="number" min="1.000001" step="any" value="2.65" inputmode="decimal" autocomplete="off">
+                <span class="unit">—</span>
+              </div>
+              <p class="field-note">Relative density; quartz default = 2.65.</p>
+            </div>
+
+            <div class="button-stack">
+              <button class="primary-button" type="submit">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h4l2-7 4 14 2-7h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Calculate Depth of Closure
+              </button>
+              <div class="side-actions">
+                <button id="resetButton" class="secondary-button" type="button">Reset defaults</button>
+                <button id="printButtonSide" class="secondary-button" type="button">Print results</button>
+              </div>
+            </div>
+
+            <div class="scope-card">
+              <h3>Calculation scope</h3>
+              <div class="scope-list">
+                <div class="scope-row"><span>Empirical formulations</span><strong>4 methods</strong></div>
+                <div class="scope-row"><span>Sensitivity envelope</span><strong>6 scenarios</strong></div>
+                <div class="scope-row"><span>Gravity acceleration</span><strong>9.80665 m/s²</strong></div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </aside>
+
+      <div class="content">
+        <section class="panel decision-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Design Decision Matrix</h2>
+              <span class="panel-kicker">Base-case recommended closure depths</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div id="warningBar" class="warning-bar" role="status"></div>
+            <div class="decision-grid">
+              <article class="result-card nourishment">
+                <div class="card-top"><span class="application-tag">Beach nourishment</span><span class="card-index">A</span></div>
+                <h3>Active profile toe</h3>
+                <div class="result-value"><span id="birkValue">—</span><small>m</small></div>
+                <div class="method-name">Birkemeier (1985) · field-adjusted inner limit</div>
+              </article>
+
+              <article class="result-card structures">
+                <div class="card-top"><span class="application-tag">Hard structures</span><span class="card-index">B</span></div>
+                <h3>Scour-protection foundation</h3>
+                <div class="result-value"><span id="hallInnerValue">—</span><small>m</small></div>
+                <div class="method-name">Hallermeier (1981) · analytical inner limit</div>
+              </article>
+
+              <article class="result-card disposal">
+                <div class="card-top"><span class="application-tag">Dredged material</span><span class="card-index">C</span></div>
+                <h3>Stable disposal mound</h3>
+                <div class="result-value"><span id="hallOuterValue">—</span><small>m</small></div>
+                <div class="method-name">Hallermeier (1983) · sediment-entrainment outer limit</div>
+              </article>
+            </div>
+
+            <div class="reference-strip">
+              <div><strong>Preliminary desktop reference</strong><br><span>Houston (1995), based on annual mean Hs</span></div>
+              <span id="houstonValue" class="reference-value">— m</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Derived Wave Statistics</h2>
+              <span class="panel-kicker">Base-case intermediate parameters</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="stats-grid">
+              <div class="stat-card"><span class="stat-label">Estimated standard deviation, σ</span><span id="sigmaValue" class="stat-value">—</span></div>
+              <div class="stat-card"><span class="stat-label">Effective wave height, H<sub>e</sub></span><span id="heValue" class="stat-value">—</span></div>
+              <div class="stat-card"><span class="stat-label">Median wave height, H<sub>m</sub></span><span id="hmValue" class="stat-value">—</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel visual-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Conceptual Closure-Depth Profile</h2>
+              <span class="panel-kicker">Relative offshore positions along an idealised seabed</span>
+            </div>
+          </div>
+          <div class="visual-body">
+            <div class="profile-wrap">
+              <svg id="profileChart" viewBox="0 0 1100 340" role="img" aria-label="Conceptual coastal profile with closure-depth markers"></svg>
+            </div>
+            <div class="legend" aria-hidden="true">
+              <span class="legend-item"><span class="legend-swatch" style="--swatch:#58d7ff"></span>Birkemeier inner</span>
+              <span class="legend-item"><span class="legend-swatch" style="--swatch:#3b9cff"></span>Hallermeier inner</span>
+              <span class="legend-item"><span class="legend-swatch" style="--swatch:#9a9dff"></span>Houston reference</span>
+              <span class="legend-item"><span class="legend-swatch" style="--swatch:#49e0c4"></span>Hallermeier outer</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel sensitivity-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Sensitivity Analysis</h2>
+              <span class="panel-kicker">Energy and period perturbations from the base case</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="analysis-layout">
+              <div class="analysis-box">
+                <div class="box-title"><span>Method comparison</span><small>Depth in metres</small></div>
+                <div class="sensitivity-chart"><svg id="sensitivityChart" viewBox="0 0 720 430" role="img" aria-label="Line chart of closure depths for six sensitivity scenarios"></svg></div>
+              </div>
+              <div class="analysis-box">
+                <div class="box-title"><span>All scenario results</span><small>Exact calculation matrix</small></div>
+                <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Scenario</th><th>Hs avg</th><th>Te</th><th>He</th><th>Hm</th><th>Birk.</th><th>Hall inner</th><th>Houston</th><th>Hall outer</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sensitivityTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel report-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Technical Report</h2>
+              <span class="panel-kicker">Fixed-width output matching the C++ report structure</span>
+            </div>
+            <div class="toolbar-actions">
+              <button id="copyButton" class="icon-button" type="button">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="2"/></svg>
+                Copy
+              </button>
+              <button id="downloadButton" class="icon-button" type="button">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Download output.txt
+              </button>
+              <button id="printButton" class="icon-button" type="button">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                Print
+              </button>
+            </div>
+          </div>
+          <div class="report-body"><pre id="reportOutput" tabindex="0" aria-live="polite"></pre></div>
+
+          <details class="methodology">
+            <summary>Calculation methodology and implemented equations</summary>
+            <div class="methodology-content">
+              <div class="formula-card">
+                <strong>Derived wave statistics</strong>
+                <span class="formula">σ = (Hs,max − Hs,mean) / 5.6<br>He = Hs,mean + 5.6σ<br>Hm = Hs,mean − 0.3σ</span>
+                <p>The C++ fallback logic is retained when the estimated σ is zero.</p>
+              </div>
+              <div class="formula-card">
+                <strong>Birkemeier (1985)</strong>
+                <span class="formula">hc = 1.75 He − 57.9 [He² / (g Te²)]</span>
+                <p>Field-adjusted inner limit used for the active nourishment profile toe.</p>
+              </div>
+              <div class="formula-card">
+                <strong>Hallermeier (1981)</strong>
+                <span class="formula">hc = 2.28 He − 68.5 [He² / (g Te²)]</span>
+                <p>Analytical inner limit used for hard-structure and scour considerations.</p>
+              </div>
+              <div class="formula-card">
+                <strong>Houston (1995)</strong>
+                <span class="formula">hc = 6.75 Hs,mean</span>
+                <p>Simplified preliminary parameterisation based on annual mean wave height.</p>
+              </div>
+              <div class="formula-card">
+                <strong>Hallermeier (1983)</strong>
+                <span class="formula">hc = 0.018 Hm Te √[g / ((s − 1) D50)]</span>
+                <p>Outer sediment-entrainment limit, with D50 converted from millimetres to metres.</p>
+              </div>
+              <div class="formula-card">
+                <strong>Sensitivity scenarios</strong>
+                <span class="formula">H ±25%; T ±25%; combined H+25% and T+25%</span>
+                <p>Base, low/high energy, short/long period and worst-case scenarios.</p>
+              </div>
+            </div>
+          </details>
+        </section>
+      </div>
+    </section>
+
+    <footer>
+      <svg class="footer-lock" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg>
+      All calculations are executed locally in this browser. No data is transmitted.
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const G = 9.80665;
+    const DEFAULTS = Object.freeze({
+      hs_mean: 2.25,
+      te_mean: 9.0,
+      hs_max: 7.7,
+      d50_mm: 0.50,
+      sg: 2.65
+    });
+
+    const METHOD_META = Object.freeze([
+      { key: "birkemeier", label: "Birkemeier", short: "Birk.", color: "#58d7ff" },
+      { key: "hallermeier_inner", label: "Hall. inner", short: "Hall-I", color: "#3b9cff" },
+      { key: "houston", label: "Houston", short: "Houston", color: "#9a9dff" },
+      { key: "hallermeier_outer", label: "Hall. outer", short: "Hall-O", color: "#49e0c4" }
+    ]);
+
+    const $ = (id) => document.getElementById(id);
+    let lastScenarios = [];
+    let lastReport = "";
+    let toastTimer = null;
+
+    function finiteNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : NaN;
+    }
+
+    function getInputs() {
+      return {
+        hs_mean: finiteNumber($("hsMean").value),
+        te_mean: finiteNumber($("teMean").value),
+        hs_max: finiteNumber($("hsMax").value),
+        d50_mm: finiteNumber($("d50").value),
+        sg: finiteNumber($("sg").value)
+      };
+    }
+
+    function validateInputs(input) {
+      if (![input.hs_mean, input.te_mean, input.hs_max, input.d50_mm, input.sg].every(Number.isFinite)) {
+        return "Enter a valid numeric value for every parameter.";
+      }
+      if (input.hs_mean <= 0 || input.te_mean <= 0 || input.hs_max <= 0 || input.d50_mm <= 0) {
+        return "Enter positive values for all wave and sediment parameters.";
+      }
+      if (input.sg <= 1.0) {
+        return "Sediment specific gravity must be greater than 1.0 for the outer-limit equation.";
+      }
+      return "";
+    }
+
+    function calculateWaveStats(input) {
+      const difference = input.hs_max - input.hs_mean;
+      const sigma = difference > 0 ? difference / 5.6 : 0.0;
+      const hm = input.hs_mean - 0.3 * sigma;
+      let he;
+      if (sigma > 0) {
+        he = input.hs_mean + 5.6 * sigma;
+      } else if (input.hs_max > 0) {
+        he = input.hs_max;
+      } else {
+        he = 4.0 * input.hs_mean;
+      }
+      return { sigma, he, hm };
+    }
+
+    function calculateDepths(input, stats) {
+      const d50M = input.d50_mm / 1000.0;
+      const birkemeier = 1.75 * stats.he - 57.9 * (Math.pow(stats.he, 2) / (G * Math.pow(input.te_mean, 2)));
+      const hallermeierInner = 2.28 * stats.he - 68.5 * (Math.pow(stats.he, 2) / (G * Math.pow(input.te_mean, 2)));
+      const houston = 6.75 * input.hs_mean;
+      const sedimentFactor = Math.sqrt(G / (d50M * (input.sg - 1.0)));
+      const hallermeierOuter = 0.018 * stats.hm * input.te_mean * sedimentFactor;
+      return {
+        birkemeier,
+        hallermeier_inner: hallermeierInner,
+        houston,
+        hallermeier_outer: hallermeierOuter
+      };
+    }
+
+    function solveScenario(name, input) {
+      const scenarioInput = { ...input };
+      const stats = calculateWaveStats(scenarioInput);
+      const results = calculateDepths(scenarioInput, stats);
+      return { name, input: scenarioInput, stats, results };
+    }
+
+    function runSensitivityAnalysis(baseInput) {
+      const lowEnergy = { ...baseInput, hs_mean: baseInput.hs_mean * 0.75, hs_max: baseInput.hs_max * 0.75 };
+      const highEnergy = { ...baseInput, hs_mean: baseInput.hs_mean * 1.25, hs_max: baseInput.hs_max * 1.25 };
+      const shortPeriod = { ...baseInput, te_mean: baseInput.te_mean * 0.75 };
+      const longPeriod = { ...baseInput, te_mean: baseInput.te_mean * 1.25 };
+      const worstCase = {
+        ...baseInput,
+        hs_mean: baseInput.hs_mean * 1.25,
+        hs_max: baseInput.hs_max * 1.25,
+        te_mean: baseInput.te_mean * 1.25
+      };
+
+      return [
+        solveScenario("Base Case", baseInput),
+        solveScenario("Low Energy (-25%)", lowEnergy),
+        solveScenario("High Energy (+25%)", highEnergy),
+        solveScenario("Short Period (-25%)", shortPeriod),
+        solveScenario("Long Period (+25%)", longPeriod),
+        solveScenario("Worst Case (H+, T+)", worstCase)
+      ];
+    }
+
+    function fixed(value, precision) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return String(number);
+      if (!Number.isInteger(precision) || precision < 0) throw new RangeError("Precision must be a non-negative integer.");
+
+      // Reproduce the default C++ iostream fixed-point rounding mode: nearest, ties to even.
+      // The IEEE-754 double is converted to its exact binary rational value before rounding.
+      const buffer = new ArrayBuffer(8);
+      const view = new DataView(buffer);
+      view.setFloat64(0, number, false);
+      const bits = (BigInt(view.getUint32(0, false)) << 32n) | BigInt(view.getUint32(4, false));
+      const negative = ((bits >> 63n) & 1n) === 1n;
+      const exponentBits = Number((bits >> 52n) & 0x7ffn);
+      const fractionBits = bits & ((1n << 52n) - 1n);
+
+      let significand;
+      let exponent;
+      if (exponentBits === 0) {
+        significand = fractionBits;
+        exponent = -1074;
+      } else {
+        significand = (1n << 52n) | fractionBits;
+        exponent = exponentBits - 1023 - 52;
+      }
+
+      let numerator = significand;
+      let denominator = 1n;
+      if (exponent >= 0) numerator <<= BigInt(exponent);
+      else denominator <<= BigInt(-exponent);
+
+      numerator *= 10n ** BigInt(precision);
+      let rounded = numerator / denominator;
+      const remainder = numerator % denominator;
+      const comparison = remainder * 2n - denominator;
+      if (comparison > 0n || (comparison === 0n && (rounded & 1n) === 1n)) rounded += 1n;
+
+      let digits = rounded.toString();
+      if (precision > 0) {
+        digits = digits.padStart(precision + 1, "0");
+        digits = `${digits.slice(0, -precision)}.${digits.slice(-precision)}`;
+      }
+      return negative ? `-${digits}` : digits;
+    }
+
+    function padRight(value, width) {
+      return String(value).padEnd(width, " ");
+    }
+
+    function padLeft(value, width) {
+      return String(value).padStart(width, " ");
+    }
+
+    function generateReport(data) {
+      const base = data[0];
+      let report = "";
+      report += "=".repeat(80) + "\n";
+      report += "TECHNICAL REPORT: DEPTH OF CLOSURE (DoC) SENSITIVITY ANALYSIS\n";
+      report += "=".repeat(80) + "\n\n";
+
+      report += "1. EXECUTIVE SUMMARY OF BASE CASE\n";
+      report += "---------------------------------\n";
+      report += "   Site Conditions:\n";
+      report += `   - Annual Mean Hs.........: ${fixed(base.input.hs_mean, 2)} m\n`;
+      report += `   - Annual Mean Te.........: ${fixed(base.input.te_mean, 2)} s\n`;
+      report += `   - Annual Max Hs..........: ${fixed(base.input.hs_max, 2)} m\n`;
+      report += `   - Sediment D50...........: ${fixed(base.input.d50_mm, 2)} mm\n\n`;
+
+      report += "   Calculated Intermediate Parameters:\n";
+      report += `   - Estimated Sigma (Std Dev)..: ${fixed(base.stats.sigma, 3)} m\n`;
+      report += `   - Effective Wave Height (He).: ${fixed(base.stats.he, 2)} m (Used for Inner Limit)\n`;
+      report += `   - Median Wave Height (Hm)....: ${fixed(base.stats.hm, 2)} m (Used for Outer Limit)\n\n`;
+
+      report += "2. DESIGN DECISION MATRIX (BASE CASE)\n";
+      report += "-------------------------------------\n";
+      report += "   Select the Closure Depth based on your engineering application:\n\n";
+
+      report += "   [A] FOR BEACH NOURISHMENT (Active Profile Toe)\n";
+      report += `       >> ADOPT: ${fixed(base.results.birkemeier, 2)} meters (Birkemeier 1985)\n`;
+      report += "       Reasoning: Field-calibrated to the limit of significant profile change.\n";
+      report += "       Optimizes sand volume.\n\n";
+
+      report += "   [B] FOR HARD STRUCTURES (Scour Protection)\n";
+      report += `       >> ADOPT: ${fixed(base.results.hallermeier_inner, 2)} meters (Hallermeier 1981)\n`;
+      report += "       Reasoning: Analytical limit of intense bed agitation. Provides a safety\n";
+      report += "       factor (deeper than Birkemeier).\n\n";
+
+      report += "   [C] FOR DREDGED MATERIAL DISPOSAL (Stable Mounds)\n";
+      report += `       >> ADOPT: ${fixed(base.results.hallermeier_outer, 2)} meters (Hallermeier 1983)\n`;
+      report += "       Reasoning: Theoretical limit of incipient sediment motion. Material placed\n";
+      report += "       seaward of this line will be stable.\n\n";
+
+      report += "3. SENSITIVITY ANALYSIS TABLE (ALL SCENARIOS)\n";
+      report += "---------------------------------------------\n";
+      report += "All depths in meters.\n\n";
+
+      report += padRight("Scenario", 22)
+        + padLeft("Hs_Avg", 8)
+        + padLeft("Te", 8)
+        + padLeft("He", 8)
+        + padLeft("Hm", 8)
+        + padLeft("Birkemeier", 12)
+        + padLeft("Hall_Inner", 12)
+        + padLeft("Houston", 10)
+        + padLeft("Hall_Outer", 12) + "\n";
+      report += "-".repeat(100) + "\n";
+
+      for (const row of data) {
+        report += padRight(row.name, 22)
+          + padLeft(fixed(row.input.hs_mean, 2), 8)
+          + padLeft(fixed(row.input.te_mean, 1), 8)
+          + padLeft(fixed(row.stats.he, 2), 8)
+          + padLeft(fixed(row.stats.hm, 2), 8)
+          + padLeft(fixed(row.results.birkemeier, 2), 12)
+          + padLeft(fixed(row.results.hallermeier_inner, 2), 12)
+          + padLeft(fixed(row.results.houston, 2), 10)
+          + padLeft(fixed(row.results.hallermeier_outer, 2), 12) + "\n";
+      }
+
+      report += "\n" + "-".repeat(100) + "\n";
+      report += "Reference Codes:\n";
+      report += "- Birkemeier: Field Adjusted Inner Limit (Best for Fill)\n";
+      report += "- Hall_Inner: Analytical Inner Limit (Best for Structures)\n";
+      report += "- Hall_Outer: Incipient Motion Limit (Best for Disposal)\n";
+      report += "=".repeat(80) + "\n";
+      return report;
+    }
+
+    function escapeXml(value) {
+      return String(value).replace(/[<>&'\"]/g, (character) => ({
+        "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", "\"": "&quot;"
+      })[character]);
+    }
+
+    function renderSummary(base) {
+      $("birkValue").textContent = fixed(base.results.birkemeier, 2);
+      $("hallInnerValue").textContent = fixed(base.results.hallermeier_inner, 2);
+      $("hallOuterValue").textContent = fixed(base.results.hallermeier_outer, 2);
+      $("houstonValue").textContent = `${fixed(base.results.houston, 2)} m`;
+      $("sigmaValue").textContent = `${fixed(base.stats.sigma, 3)} m`;
+      $("heValue").textContent = `${fixed(base.stats.he, 2)} m`;
+      $("hmValue").textContent = `${fixed(base.stats.hm, 2)} m`;
+    }
+
+    function renderSensitivityTable(data) {
+      const body = $("sensitivityTableBody");
+      body.replaceChildren();
+      data.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        if (index === 0) tr.className = "base-row";
+        const values = [
+          row.name,
+          fixed(row.input.hs_mean, 2),
+          fixed(row.input.te_mean, 1),
+          fixed(row.stats.he, 2),
+          fixed(row.stats.hm, 2),
+          fixed(row.results.birkemeier, 2),
+          fixed(row.results.hallermeier_inner, 2),
+          fixed(row.results.houston, 2),
+          fixed(row.results.hallermeier_outer, 2)
+        ];
+        values.forEach((value, columnIndex) => {
+          const td = document.createElement("td");
+          td.textContent = value;
+          if (columnIndex === 5) td.className = "method-b";
+          if (columnIndex === 6) td.className = "method-hi";
+          if (columnIndex === 7) td.className = "method-hou";
+          if (columnIndex === 8) td.className = "method-ho";
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    function niceCeiling(value) {
+      if (!Number.isFinite(value) || value <= 0) return 1;
+      const exponent = Math.floor(Math.log10(value));
+      const scale = Math.pow(10, exponent);
+      const normalized = value / scale;
+      const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10;
+      return nice * scale;
+    }
+
+    function renderProfileChart(base) {
+      const svg = $("profileChart");
+      const methods = METHOD_META.map((meta) => ({ ...meta, value: base.results[meta.key] }));
+      const maxPositive = Math.max(1, ...methods.map((method) => Math.max(0, method.value)));
+      const scaleMax = niceCeiling(maxPositive * 1.12);
+      const xStart = 105;
+      const xEnd = 1035;
+      const waterY = 87;
+      const seabedStartY = 115;
+      const seabedEndY = 297;
+      const plotWidth = xEnd - xStart;
+      const plotHeight = seabedEndY - seabedStartY;
+      const ticks = 5;
+
+      let grid = "";
+      for (let index = 0; index <= ticks; index += 1) {
+        const depth = (scaleMax / ticks) * index;
+        const x = xStart + (plotWidth * index / ticks);
+        const y = seabedStartY + (plotHeight * index / ticks);
+        grid += `<line x1="${x}" y1="${waterY}" x2="${x}" y2="${y}" stroke="rgba(136,202,243,.10)" stroke-width="1"/>`;
+        grid += `<text x="${x}" y="325" fill="#7896ad" font-size="12" text-anchor="middle">${fixed(depth, depth < 10 ? 1 : 0)} m</text>`;
+      }
+
+      let markers = "";
+      methods.forEach((method, index) => {
+        const safeDepth = Math.max(0, method.value);
+        const ratio = Math.min(1, safeDepth / scaleMax);
+        const x = xStart + plotWidth * ratio;
+        const seabedY = seabedStartY + plotHeight * ratio;
+        const labelY = 32 + index * 14;
+        const negative = method.value < 0;
+        markers += `
+          <g>
+            <line x1="${x}" y1="${waterY - 2}" x2="${x}" y2="${seabedY}" stroke="${method.color}" stroke-width="2" stroke-dasharray="6 6" opacity=".92"/>
+            <circle cx="${x}" cy="${seabedY}" r="5.2" fill="#061423" stroke="${method.color}" stroke-width="3"/>
+            <path d="M${x} ${waterY - 7} L${x} ${labelY + 5} L${Math.min(1010, Math.max(90, x + (index % 2 === 0 ? -18 : 18)))} ${labelY + 5}" fill="none" stroke="${method.color}" stroke-width="1.4" opacity=".74"/>
+            <text x="${Math.min(1010, Math.max(90, x + (index % 2 === 0 ? -22 : 22)))}" y="${labelY}" fill="${method.color}" font-size="12.5" font-weight="750" text-anchor="${index % 2 === 0 ? "end" : "start"}">${escapeXml(method.short)} ${fixed(method.value, 2)} m${negative ? " (negative)" : ""}</text>
+          </g>`;
+      });
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="seaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0b527c" stop-opacity=".58"/>
+            <stop offset="100%" stop-color="#05223b" stop-opacity=".86"/>
+          </linearGradient>
+          <linearGradient id="bedGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#b68b5c"/>
+            <stop offset="100%" stop-color="#445066"/>
+          </linearGradient>
+          <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+        </defs>
+        <rect width="1100" height="340" fill="transparent"/>
+        <path d="M0 ${waterY} C90 ${waterY - 8}, 165 ${waterY + 8}, 255 ${waterY} S420 ${waterY - 7}, 520 ${waterY} S690 ${waterY + 8}, 800 ${waterY} S980 ${waterY - 6}, 1100 ${waterY}" fill="none" stroke="#62cfff" stroke-width="2.4" opacity=".78"/>
+        <path d="M0 ${waterY + 5} C110 ${waterY - 2}, 185 ${waterY + 13}, 285 ${waterY + 4} S455 ${waterY}, 565 ${waterY + 5} S750 ${waterY + 14}, 875 ${waterY + 4} S1010 ${waterY}, 1100 ${waterY + 6} L1100 340 L0 340 Z" fill="url(#seaGradient)"/>
+        ${grid}
+        <path d="M0 123 L58 117 L${xStart} ${seabedStartY} C250 132, 365 156, 480 183 C620 218, 760 249, ${xEnd} ${seabedEndY} L1100 316 L1100 340 L0 340 Z" fill="url(#bedGradient)" opacity=".77"/>
+        <path d="M0 123 L58 117 L${xStart} ${seabedStartY} C250 132, 365 156, 480 183 C620 218, 760 249, ${xEnd} ${seabedEndY} L1100 316" fill="none" stroke="#d6b57c" stroke-width="2.1" opacity=".76"/>
+        <path d="M30 132 C225 146, 345 171, 520 210 S840 284, 1080 322" fill="none" stroke="#8b744f" stroke-width="11" opacity=".13" filter="url(#softGlow)"/>
+        <text x="30" y="70" fill="#91adc2" font-size="12" font-weight="700" letter-spacing="1.2">SHORE</text>
+        <text x="1038" y="70" fill="#91adc2" font-size="12" font-weight="700" text-anchor="end" letter-spacing="1.2">OFFSHORE</text>
+        <text x="28" y="321" fill="#7896ad" font-size="11">Conceptual profile — horizontal position scaled to calculated depth</text>
+        ${markers}
+      `;
+    }
+
+    function renderSensitivityChart(data) {
+      const svg = $("sensitivityChart");
+      const width = 720;
+      const height = 430;
+      const margin = { top: 44, right: 30, bottom: 88, left: 58 };
+      const plotWidth = width - margin.left - margin.right;
+      const plotHeight = height - margin.top - margin.bottom;
+      const allValues = data.flatMap((row) => METHOD_META.map((method) => row.results[method.key]));
+      const minValue = Math.min(0, ...allValues);
+      const maxValue = Math.max(1, ...allValues);
+      const rangePadding = Math.max((maxValue - minValue) * 0.08, 0.5);
+      const yMin = minValue < 0 ? minValue - rangePadding : 0;
+      const yMax = niceCeiling(maxValue + rangePadding);
+      const yRange = yMax - yMin || 1;
+      const xAt = (index) => margin.left + (plotWidth * index / (data.length - 1));
+      const yAt = (value) => margin.top + plotHeight - ((value - yMin) / yRange) * plotHeight;
+      const yTicks = 5;
+
+      let chart = `<rect width="${width}" height="${height}" fill="transparent"/>`;
+      for (let index = 0; index <= yTicks; index += 1) {
+        const value = yMin + (yRange * index / yTicks);
+        const y = yAt(value);
+        chart += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="rgba(136,202,243,.11)" stroke-width="1"/>`;
+        chart += `<text x="${margin.left - 10}" y="${y + 4}" fill="#7896ad" font-size="11" text-anchor="end">${fixed(value, value < 10 ? 1 : 0)}</text>`;
+      }
+
+      const zeroY = yAt(0);
+      chart += `<line x1="${margin.left}" y1="${zeroY}" x2="${width - margin.right}" y2="${zeroY}" stroke="rgba(190,226,249,.28)" stroke-width="1.3"/>`;
+
+      data.forEach((row, index) => {
+        const x = xAt(index);
+        chart += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + plotHeight}" stroke="rgba(136,202,243,.06)" stroke-width="1"/>`;
+        const words = row.name.replace(" (-25%)", "\n−25%").replace(" (+25%)", "\n+25%").replace(" (H+, T+)", "\nH+, T+").split("\n");
+        words.forEach((word, lineIndex) => {
+          chart += `<text x="${x}" y="${margin.top + plotHeight + 25 + lineIndex * 14}" fill="#8da8bd" font-size="10.5" font-weight="650" text-anchor="middle">${escapeXml(word)}</text>`;
+        });
+      });
+
+      METHOD_META.forEach((method, methodIndex) => {
+        const points = data.map((row, index) => `${xAt(index)},${yAt(row.results[method.key])}`).join(" ");
+        chart += `<polyline points="${points}" fill="none" stroke="${method.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".96"/>`;
+        data.forEach((row, index) => {
+          const x = xAt(index);
+          const y = yAt(row.results[method.key]);
+          chart += `<circle cx="${x}" cy="${y}" r="4.3" fill="#061423" stroke="${method.color}" stroke-width="2.3"><title>${escapeXml(row.name)} — ${escapeXml(method.label)}: ${fixed(row.results[method.key], 2)} m</title></circle>`;
+        });
+        const legendX = margin.left + methodIndex * 145;
+        chart += `<line x1="${legendX}" y1="20" x2="${legendX + 22}" y2="20" stroke="${method.color}" stroke-width="3" stroke-linecap="round"/>`;
+        chart += `<text x="${legendX + 29}" y="24" fill="#adc4d6" font-size="11" font-weight="700">${escapeXml(method.short)}</text>`;
+      });
+
+      svg.innerHTML = chart;
+    }
+
+    function showError(message) {
+      const bar = $("errorBar");
+      bar.textContent = message;
+      bar.classList.add("visible");
+    }
+
+    function clearError() {
+      const bar = $("errorBar");
+      bar.textContent = "";
+      bar.classList.remove("visible");
+    }
+
+    function updateWarnings(base) {
+      const warning = $("warningBar");
+      const negativeMethods = METHOD_META.filter((method) => base.results[method.key] <= 0).map((method) => method.label);
+      let message = "";
+      if (negativeMethods.length) {
+        message = `Non-positive calculated depth for: ${negativeMethods.join(", ")}. Review whether the empirical formula is being applied within a suitable parameter range.`;
+      } else if (base.stats.sigma === 0) {
+        message = "Annual maximum Hs is not greater than annual mean Hs. The original C++ fallback is active: σ = 0 and He uses the annual maximum proxy.";
+      } else if (base.stats.hm <= 0) {
+        message = "The derived median wave height is non-positive; review the annual wave-height inputs before adopting the outer closure depth.";
+      }
+      warning.textContent = message;
+      warning.classList.toggle("visible", Boolean(message));
+    }
+
+    function showToast(message) {
+      const toast = $("toast");
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("visible");
+      toastTimer = setTimeout(() => toast.classList.remove("visible"), 2200);
+    }
+
+    function calculate() {
+      clearError();
+      const inputs = getInputs();
+      const validationMessage = validateInputs(inputs);
+      if (validationMessage) {
+        showError(validationMessage);
+        return false;
+      }
+
+      try {
+        const scenarios = runSensitivityAnalysis(inputs);
+        const allFinite = scenarios.every((row) => [
+          row.stats.sigma, row.stats.he, row.stats.hm,
+          row.results.birkemeier, row.results.hallermeier_inner,
+          row.results.houston, row.results.hallermeier_outer
+        ].every(Number.isFinite));
+        if (!allFinite) throw new Error("The selected inputs produced a non-finite result.");
+
+        lastScenarios = scenarios;
+        lastReport = generateReport(scenarios);
+        const base = scenarios[0];
+        renderSummary(base);
+        renderProfileChart(base);
+        renderSensitivityChart(scenarios);
+        renderSensitivityTable(scenarios);
+        updateWarnings(base);
+        $("reportOutput").textContent = lastReport;
+        return true;
+      } catch (error) {
+        showError(`Calculation error: ${error instanceof Error ? error.message : String(error)}`);
+        return false;
+      }
+    }
+
+    function resetDefaults() {
+      $("hsMean").value = fixed(DEFAULTS.hs_mean, 2);
+      $("teMean").value = fixed(DEFAULTS.te_mean, 2);
+      $("hsMax").value = fixed(DEFAULTS.hs_max, 2);
+      $("d50").value = fixed(DEFAULTS.d50_mm, 2);
+      $("sg").value = fixed(DEFAULTS.sg, 2);
+      calculate();
+      showToast("Default parameters restored");
+    }
+
+    function downloadReport() {
+      if (!lastReport && !calculate()) return;
+      const blob = new Blob([lastReport], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "output.txt";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      showToast("Technical report downloaded");
+    }
+
+    async function copyReport() {
+      if (!lastReport && !calculate()) return;
+      try {
+        await navigator.clipboard.writeText(lastReport);
+      } catch {
+        const textarea = document.createElement("textarea");
+        textarea.value = lastReport;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+      showToast("Technical report copied");
+    }
+
+    function printResults() {
+      if (!lastReport && !calculate()) return;
+      window.print();
+    }
+
+    function preventNegativeEntry() {
+      ["hsMean", "teMean", "hsMax", "d50", "sg"].forEach((id) => {
+        const input = $(id);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "-" || event.key === "−") event.preventDefault();
+        });
+      });
+    }
+
+    $("calculatorForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (calculate()) showToast("Calculation updated");
+    });
+    $("resetButton").addEventListener("click", resetDefaults);
+    $("copyButton").addEventListener("click", copyReport);
+    $("downloadButton").addEventListener("click", downloadReport);
+    $("printButton").addEventListener("click", printResults);
+    $("printButtonSide").addEventListener("click", printResults);
+
+    preventNegativeEntry();
+    calculate();
+  </script>
+</body>
+</html>
